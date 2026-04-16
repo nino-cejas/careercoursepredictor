@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerLinkAI Predictor</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <main class="page">
+        <header class="hero">
+            <p class="eyebrow">CareerLinkAI</p>
+            <h1>Career and Course Predictor</h1>
+            <p class="subtitle">Logistic Regression model powered by grades, RIASEC, and SCCT.</p>
+        </header>
+
+        <form id="predictForm" class="card form-grid" novalidate>
+            <div class="wizard-header">
+                <div class="wizard-track" aria-hidden="true">
+                    <div id="wizardProgressBar" class="wizard-fill"></div>
+                </div>
+                <p id="wizardProgressText" class="wizard-progress-text">Step 1 of 8</p>
+            </div>
+
+            <section id="stepAcademic" class="wizard-step" data-step="0">
+                <h2>Step 1: Academic Profile</h2>
+                <p class="section-note">Enter grades from Grade 7 to Grade 10, then choose your SHS strand.</p>
+                <div class="grades-grid">
+                    <div class="grade-row">
+                        <h3>Math</h3>
+                        <div class="inputs-inline" data-subject="Math"></div>
+                    </div>
+                    <div class="grade-row">
+                        <h3>English</h3>
+                        <div class="inputs-inline" data-subject="English"></div>
+                    </div>
+                    <div class="grade-row">
+                        <h3>Science</h3>
+                        <div class="inputs-inline" data-subject="Science"></div>
+                    </div>
+                </div>
+                <label class="field">
+                    <span>SHS Strand</span>
+                    <select id="shsStrand" required>
+                        <option value="">Select strand</option>
+                        <option value="STEM">STEM</option>
+                        <option value="ABM">ABM</option>
+                        <option value="HUMSS">HUMSS</option>
+                        <option value="ICT">ICT</option>
+                        <option value="HE">HE</option>
+                    </select>
+                </label>
+            </section>
+
+            <section id="stepRiasec" class="wizard-step hidden" data-step="1">
+                <h2>Step 2: RIASEC (48 items)</h2>
+                <p class="section-note">Rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree).</p>
+                <p id="riasecPageText" class="page-label">Page 1 of 4</p>
+                <div id="riasecContainer" class="questions-grid"></div>
+            </section>
+
+            <section id="stepScct" class="wizard-step hidden" data-step="2">
+                <h2>Step 3: SCCT (12 items)</h2>
+                <p class="section-note">Answer 4 items for each SCCT category.</p>
+                <p id="scctPageText" class="page-label">Page 1 of 3</p>
+                <div id="scctContainer" class="questions-grid"></div>
+            </section>
+
+            <div class="actions wizard-actions">
+                <button type="button" id="prevBtn" class="secondary">Back</button>
+                <button type="button" id="nextBtn">Next</button>
+                <button type="submit" id="submitBtn" class="hidden">Predict Career & Course</button>
+                <p id="statusMessage" class="status" aria-live="polite"></p>
+            </div>
+        </form>
+
+        <section id="resultCard" class="card results hidden">
+            <h2>Prediction Result</h2>
+            <div class="result-grid">
+                <div>
+                    <p class="label">Best Career</p>
+                    <p id="bestCareer" class="value">-</p>
+                </div>
+                <div>
+                    <p class="label">Best Course</p>
+                    <p id="bestCourse" class="value">-</p>
+                </div>
+                <div>
+                    <p class="label">Model Accuracy</p>
+                    <p id="modelAccuracy" class="value">-</p>
+                </div>
+                <div>
+                    <p class="label">Prediction Confidence</p>
+                    <p id="predictionConfidence" class="value">-</p>
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div>
+                    <h3>Computed Features</h3>
+                    <ul id="featureSummary"></ul>
+                </div>
+                <div>
+                    <h3>RIASEC Scores</h3>
+                    <ul id="riasecSummary"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/app.js"></script>
+</body>
+
+</html>

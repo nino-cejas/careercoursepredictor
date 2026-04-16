@@ -1,0 +1,290 @@
+:root {
+	--bg: #f5f7fb;
+	--card: #ffffff;
+	--ink: #112236;
+	--muted: #5d6e82;
+	--brand: #0a8f7a;
+	--brand-ink: #06685a;
+	--line: #d9e2ec;
+	--danger: #b3261e;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background: radial-gradient(circle at 20% 10%, #eef6ff 0%, var(--bg) 45%, #edf8f4 100%);
+	color: var(--ink);
+}
+
+.page {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 1.5rem;
+}
+
+.hero {
+	padding: 1.25rem 0;
+}
+
+.eyebrow {
+	font-weight: 700;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: var(--brand-ink);
+	margin: 0 0 0.35rem;
+	font-size: 0.78rem;
+}
+
+h1 {
+	margin: 0;
+	font-size: clamp(1.6rem, 2vw + 1rem, 2.4rem);
+}
+
+.subtitle {
+	margin-top: 0.55rem;
+	color: var(--muted);
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	box-shadow: 0 8px 28px rgba(17, 34, 54, 0.08);
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.wizard-header {
+	margin-bottom: 1rem;
+}
+
+.wizard-track {
+	width: 100%;
+	height: 10px;
+	border-radius: 999px;
+	background: #dbe7f3;
+	overflow: hidden;
+	margin-bottom: 0.45rem;
+}
+
+.wizard-fill {
+	height: 100%;
+	width: 0;
+	background: linear-gradient(135deg, #0a8f7a, #2aa38f);
+	transition: width 0.24s ease;
+}
+
+.wizard-progress-text {
+	margin: 0;
+	font-size: 0.88rem;
+	color: var(--muted);
+}
+
+.wizard-step {
+	animation: stepIn 0.2s ease;
+}
+
+@keyframes stepIn {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.form-grid section {
+	margin-bottom: 1rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px dashed var(--line);
+}
+
+.form-grid section:last-of-type {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+h2 {
+	margin: 0;
+	font-size: 1.2rem;
+}
+
+h3 {
+	margin: 0.75rem 0 0.45rem;
+	font-size: 1rem;
+	color: #26415c;
+}
+
+.section-note {
+	margin: 0.35rem 0 0.75rem;
+	color: var(--muted);
+	font-size: 0.92rem;
+}
+
+.grades-grid {
+	display: grid;
+	gap: 0.75rem;
+	margin-bottom: 0.85rem;
+}
+
+.grade-row {
+	padding: 0.7rem;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	background: #fbfdff;
+}
+
+.inputs-inline {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(60px, 1fr));
+	gap: 0.45rem;
+}
+
+input,
+select,
+button {
+	font: inherit;
+}
+
+input,
+select {
+	width: 100%;
+	padding: 0.5rem 0.55rem;
+	border: 1px solid #bcc8d6;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.field {
+	display: grid;
+	gap: 0.4rem;
+	max-width: 340px;
+}
+
+.questions-grid {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.question {
+	display: grid;
+	grid-template-columns: 1fr 120px;
+	gap: 0.6rem;
+	align-items: center;
+	border: 1px solid #e5edf6;
+	padding: 0.6rem;
+	border-radius: 10px;
+	background: #ffffff;
+}
+
+.question p {
+	margin: 0;
+	font-size: 0.95rem;
+}
+
+.page-label {
+	margin: 0.2rem 0 0.8rem;
+	font-size: 0.88rem;
+	color: var(--muted);
+	font-weight: 600;
+}
+
+.actions {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	margin-top: 0.8rem;
+}
+
+.wizard-actions {
+	flex-wrap: wrap;
+}
+
+button {
+	padding: 0.66rem 1rem;
+	border: none;
+	border-radius: 9px;
+	background: linear-gradient(135deg, #0a8f7a, #2aa38f);
+	color: #fff;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+button.secondary {
+	background: #eef3f8;
+	color: #1f3a56;
+	border: 1px solid #d1deeb;
+}
+
+button:disabled {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+.status {
+	margin: 0;
+	font-size: 0.9rem;
+	color: var(--muted);
+}
+
+.status.error {
+	color: var(--danger);
+}
+
+.results.hidden {
+	display: none;
+}
+
+.result-grid,
+.details-grid {
+	display: grid;
+	gap: 0.8rem;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	margin-top: 0.85rem;
+}
+
+.label {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--muted);
+	margin: 0;
+}
+
+.value {
+	margin: 0.2rem 0 0;
+	font-size: 1.08rem;
+	font-weight: 700;
+}
+
+ul {
+	margin: 0.5rem 0 0;
+	padding-left: 1.1rem;
+	line-height: 1.4;
+}
+
+@media (max-width: 700px) {
+	.page {
+		padding: 0.95rem;
+	}
+
+	.question {
+		grid-template-columns: 1fr;
+	}
+
+	.actions {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
