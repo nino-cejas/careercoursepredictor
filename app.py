@@ -118,8 +118,8 @@ def validate_grade_block(grades: dict) -> dict[str, float]:
         if subject not in grades or len(grades[subject]) != 4:
             raise ValueError(f"{subject} must contain 4 grade values (Grades 7-10).")
         values = [float(v) for v in grades[subject]]
-        if any(v < 0 or v > 100 for v in values):
-            raise ValueError(f"{subject} grades must be between 0 and 100.")
+        if any(v < 70 or v > 100 for v in values):
+            raise ValueError(f"{subject} grades must be between 70 and 100.")
         averages[subject] = round(average(values), 2)
 
     return averages

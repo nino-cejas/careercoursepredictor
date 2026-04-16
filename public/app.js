@@ -39,7 +39,7 @@ function createGradeInputs() {
         gradeLevels.forEach((level) => {
             const input = document.createElement("input");
             input.type = "number";
-            input.min = "0";
+            input.min = "70";
             input.max = "100";
             input.step = "0.01";
             input.placeholder = `G${level}`;
@@ -62,6 +62,66 @@ function createAnswerSelect(defaultValue = "3") {
         select.appendChild(option);
     });
     return select;
+}
+
+function createStarRating(initialValue, onChange) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "star-rating";
+    wrapper.setAttribute("role", "radiogroup");
+
+    const valueText = document.createElement("span");
+    valueText.className = "star-value";
+
+    let selected = Number(initialValue);
+    const buttons = [];
+
+    function refresh() {
+        buttons.forEach((button, index) => {
+            const value = index + 1;
+            const active = value <= selected;
+            button.textContent = active ? "★" : "☆";
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-checked", String(value === selected));
+        });
+        valueText.textContent = `${selected}/5`;
+    }
+
+    for (let value = 1; value <= 5; value += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "star-btn";
+        button.dataset.value = String(value);
+        button.setAttribute("role", "radio");
+        button.setAttribute("aria-label", `${value} star`);
+
+        button.addEventListener("click", () => {
+            selected = value;
+            refresh();
+            onChange(selected);
+        });
+
+        button.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+                event.preventDefault();
+                selected = Math.min(5, selected + 1);
+                refresh();
+                onChange(selected);
+            }
+            if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+                event.preventDefault();
+                selected = Math.max(1, selected - 1);
+                refresh();
+                onChange(selected);
+            }
+        });
+
+        buttons.push(button);
+        wrapper.appendChild(button);
+    }
+
+    wrapper.appendChild(valueText);
+    refresh();
+    return wrapper;
 }
 
 function initializeAnswerState() {
@@ -118,13 +178,12 @@ function renderRiasecPage() {
         const text = document.createElement("p");
         text.textContent = `${start + index + 1}. ${question.text}`;
 
-        const select = createAnswerSelect(String(riasecAnswers[String(question.id)]));
-        select.addEventListener("change", () => {
-            riasecAnswers[String(question.id)] = Number(select.value);
+        const rating = createStarRating(riasecAnswers[String(question.id)], (value) => {
+            riasecAnswers[String(question.id)] = value;
         });
 
         wrapper.appendChild(text);
-        wrapper.appendChild(select);
+        wrapper.appendChild(rating);
         riasecContainer.appendChild(wrapper);
     });
 }
@@ -148,13 +207,12 @@ function renderScctPage() {
         const text = document.createElement("p");
         text.textContent = `${index + 1}. ${questionText}`;
 
-        const select = createAnswerSelect(String(scctAnswers[key][index]));
-        select.addEventListener("change", () => {
-            scctAnswers[key][index] = Number(select.value);
+        const rating = createStarRating(scctAnswers[key][index], (value) => {
+            scctAnswers[key][index] = value;
         });
 
         wrapper.appendChild(text);
-        wrapper.appendChild(select);
+        wrapper.appendChild(rating);
         scctContainer.appendChild(wrapper);
     });
 }
@@ -193,8 +251,8 @@ function validateAcademicStep() {
         gradeLevels.forEach((level) => {
             const input = predictForm.querySelector(`[name="grade_${subject}_${level}"]`);
             const value = Number(input.value);
-            if (!Number.isFinite(value) || value < 0 || value > 100) {
-                throw new Error(`Please enter valid ${subject} grade for Grade ${level} (0-100).`);
+            if (!Number.isFinite(value) || value < 70 || value > 100) {
+                throw new Error(`Please enter valid ${subject} grade for Grade ${level} (70-100).`);
             }
         });
     });
@@ -280,7 +338,7 @@ function readScctAnswers() {
     return {
         scct_se: [...scctAnswers.scct_se],
         scct_oe: [...scctAnswers.scct_oe],
-        scct_b: [...scctAnswers.scct_b],
+        scct_b: scctAnswers.scct_b.map((value) => 6 - value),
     };
 }
 

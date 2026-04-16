@@ -179,7 +179,7 @@ select {
 
 .question {
 	display: grid;
-	grid-template-columns: 1fr 120px;
+	grid-template-columns: 1fr auto;
 	gap: 0.6rem;
 	align-items: center;
 	border: 1px solid #e5edf6;
@@ -191,6 +191,43 @@ select {
 .question p {
 	margin: 0;
 	font-size: 0.95rem;
+}
+
+.star-rating {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	padding: 0.2rem 0.35rem;
+	border: 1px solid #d7e2ef;
+	border-radius: 9px;
+	background: #f8fbff;
+}
+
+.star-btn {
+	border: none;
+	background: transparent;
+	padding: 0 0.08rem;
+	font-size: 1.1rem;
+	line-height: 1;
+	color: #9caec2;
+	cursor: pointer;
+}
+
+.star-btn.active {
+	color: #f3a316;
+}
+
+.star-btn:focus-visible {
+	outline: 2px solid #2a80d8;
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+.star-value {
+	margin-left: 0.35rem;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: #35506d;
 }
 
 .page-label {
