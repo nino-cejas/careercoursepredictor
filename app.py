@@ -1,11 +1,13 @@
+import os
 import random
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
@@ -171,7 +173,53 @@ def compute_best_subject(subject_averages: dict[str, float]) -> str:
     )
 
 
-def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, float]:
+def rounded_metrics(metrics: dict[str, float]) -> dict[str, float]:
+    return {metric: round(value, 4) for metric, value in metrics.items()}
+
+
+def rounded_model_summary(summary: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+    return {group: rounded_metrics(metrics) for group, metrics in summary.items()}
+
+
+def compute_top_k_hit_rate(
+    y_true: pd.Series,
+    probabilities: np.ndarray,
+    class_labels: np.ndarray,
+    k: int,
+) -> float:
+    if probabilities.ndim != 2 or probabilities.shape[0] == 0:
+        return 0.0
+
+    top_k = max(1, min(k, probabilities.shape[1]))
+    top_indices = np.argpartition(probabilities, -top_k, axis=1)[:, -top_k:]
+    top_labels = class_labels[top_indices]
+    y_true_values = y_true.to_numpy().reshape(-1, 1)
+    hits = (top_labels == y_true_values).any(axis=1)
+    return float(hits.mean())
+
+
+def hit_rate_to_summary(hit_rate: float) -> dict[str, float]:
+    return {
+        "accuracy": hit_rate,
+        "recall": hit_rate,
+        "f1_score": hit_rate,
+        "precision": hit_rate,
+    }
+
+
+def print_model_summary(summary: dict[str, dict[str, float]]) -> None:
+    top_1 = summary["top1"]
+    top_3 = summary["top3"]
+
+    print("Model Summary (Top-1 vs Top-3)")
+    print(f"{'Metric':<10} {'Top-1':>10} {'Top-3':>10}")
+    print(f"{'Accuracy':<10} {top_1['accuracy']:>10.4f} {top_3['accuracy']:>10.4f}")
+    print(f"{'Recall':<10} {top_1['recall']:>10.4f} {top_3['recall']:>10.4f}")
+    print(f"{'F1-Score':<10} {top_1['f1_score']:>10.4f} {top_3['f1_score']:>10.4f}")
+    print(f"{'Precision':<10} {top_1['precision']:>10.4f} {top_3['precision']:>10.4f}")
+
+
+def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, dict[str, dict[str, float]]]:
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
@@ -225,12 +273,31 @@ def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, float]:
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    top_1_summary = {
+        "accuracy": float(accuracy_score(y_test, y_pred)),
+        "recall": float(recall_score(y_test, y_pred, average="weighted", zero_division=0)),
+        "f1_score": float(f1_score(y_test, y_pred, average="weighted", zero_division=0)),
+        "precision": float(
+            precision_score(y_test, y_pred, average="weighted", zero_division=0)
+        ),
+    }
 
-    return model, float(accuracy)
+    test_probabilities = model.predict_proba(X_test)
+    classifier = model.named_steps["classifier"]
+    class_labels = classifier.classes_
+    top_3_hit_rate = compute_top_k_hit_rate(
+        y_true=y_test,
+        probabilities=test_probabilities,
+        class_labels=class_labels,
+        k=3,
+    )
+    top_3_summary = hit_rate_to_summary(top_3_hit_rate)
+
+    return model, {"top1": top_1_summary, "top3": top_3_summary}
 
 
-MODEL, MODEL_ACCURACY = load_and_train_model(DATASET_PATH)
+MODEL, MODEL_SUMMARY = load_and_train_model(DATASET_PATH)
+print_model_summary(MODEL_SUMMARY)
 
 app = Flask(__name__, static_folder="public", static_url_path="")
 
@@ -288,11 +355,30 @@ def predict() -> object:
             ]
         )
 
-        predicted_label = MODEL.predict(model_input)[0]
         probabilities = MODEL.predict_proba(model_input)[0]
-        confidence = float(probabilities.max())
+        classifier = MODEL.named_steps["classifier"]
+        class_labels = classifier.classes_
+        top_k = min(3, len(probabilities))
+        top_indices = np.argsort(probabilities)[-top_k:][::-1]
 
-        predicted_career, predicted_course = predicted_label.split("|||", 1)
+        top_predictions: list[dict[str, object]] = []
+        for rank, index in enumerate(top_indices, start=1):
+            label = class_labels[index]
+            predicted_career, predicted_course = label.split("|||", 1)
+            top_predictions.append(
+                {
+                    "rank": rank,
+                    "best_career": predicted_career,
+                    "best_course": predicted_course,
+                    "confidence": round(float(probabilities[index]), 4),
+                }
+            )
+
+        best_prediction = top_predictions[0]
+        confidence = float(best_prediction["confidence"])
+
+        predicted_career = str(best_prediction["best_career"])
+        predicted_course = str(best_prediction["best_course"])
 
         return jsonify(
             {
@@ -303,7 +389,9 @@ def predict() -> object:
                 "scct_averages": scct_averages,
                 "best_career": predicted_career,
                 "best_course": predicted_course,
-                "model_accuracy": round(MODEL_ACCURACY, 4),
+                "top_predictions": top_predictions,
+                "model_accuracy": round(MODEL_SUMMARY["top1"]["accuracy"], 4),
+                "model_summary": rounded_model_summary(MODEL_SUMMARY),
                 "prediction_confidence": round(confidence, 4),
                 "model_input": {
                     "best_subject": best_subject,
@@ -323,4 +411,7 @@ def predict() -> object:
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "5000"))
+    debug = os.getenv("FLASK_DEBUG", "0") == "1"
+    app.run(host=host, port=port, debug=debug)

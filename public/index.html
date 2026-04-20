@@ -78,28 +78,126 @@
 
         <section id="resultCard" class="card results hidden">
             <h2>Prediction Result</h2>
-            <div class="result-grid">
-                <div>
-                    <p class="label">Best Career</p>
-                    <p id="bestCareer" class="value">-</p>
+            <div class="result-view-toggle" role="group" aria-label="Prediction view mode">
+                <button type="button" id="viewTop1Btn" class="toggle-btn">Top-1 Only</button>
+                <button type="button" id="viewTop3Btn" class="toggle-btn active">Top-3 View</button>
+            </div>
+
+            <div class="highlight-container">
+                <h3>Highlighted Results</h3>
+                <div class="highlight-grid">
+                    <div class="highlight-item">
+                        <p class="label">Best Subject</p>
+                        <p id="bestSubjectHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">SHS Strand</p>
+                        <p id="shsStrandHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">Holland Code</p>
+                        <p id="hollandCodeHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">SCCT-SE Avg</p>
+                        <p id="scctSeHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">SCCT-OE Avg</p>
+                        <p id="scctOeHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">SCCT-B Avg</p>
+                        <p id="scctBHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">Best Career</p>
+                        <p id="bestCareerHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">Best Course</p>
+                        <p id="bestCourseHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">Prediction Confidence</p>
+                        <p id="predictionConfidenceHighlight" class="highlight-value">-</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="label">Best Course</p>
-                    <p id="bestCourse" class="value">-</p>
+            </div>
+
+            <div class="model-summary-container">
+                <h3>Model Summary</h3>
+                <div class="model-summary-compare">
+                    <div class="summary-column" id="top1SummaryColumn">
+                        <div class="summary-head">
+                            <h4>Top-1 Metrics</h4>
+                            <button type="button" id="toggleTop1ExplanationBtn" class="explain-btn" aria-expanded="false">
+                                Show Model Summary Explanation
+                            </button>
+                        </div>
+                        <div class="model-summary-grid">
+                            <div class="metric-item">
+                                <p class="label">Accuracy</p>
+                                <p id="top1Accuracy" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">Recall</p>
+                                <p id="top1Recall" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">F1-Score</p>
+                                <p id="top1F1Score" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">Precision</p>
+                                <p id="top1Precision" class="value">-</p>
+                            </div>
+                        </div>
+                        <div id="top1ExplanationBox" class="summary-explanation hidden">
+                            <p id="top1ExplanationText"></p>
+                        </div>
+                    </div>
+
+                    <div class="summary-column" id="top3SummaryColumn">
+                        <div class="summary-head">
+                            <h4>Top-3 Metrics</h4>
+                            <button type="button" id="toggleTop3ExplanationBtn" class="explain-btn" aria-expanded="false">
+                                Show Model Summary Explanation
+                            </button>
+                        </div>
+                        <div class="model-summary-grid">
+                            <div class="metric-item">
+                                <p class="label">Accuracy</p>
+                                <p id="top3Accuracy" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">Recall</p>
+                                <p id="top3Recall" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">F1-Score</p>
+                                <p id="top3F1Score" class="value">-</p>
+                            </div>
+                            <div class="metric-item">
+                                <p class="label">Precision</p>
+                                <p id="top3Precision" class="value">-</p>
+                            </div>
+                        </div>
+                        <div id="top3ExplanationBox" class="summary-explanation hidden">
+                            <p id="top3ExplanationText"></p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p class="label">Model Accuracy</p>
-                    <p id="modelAccuracy" class="value">-</p>
-                </div>
-                <div>
-                    <p class="label">Prediction Confidence</p>
-                    <p id="predictionConfidence" class="value">-</p>
-                </div>
+            </div>
+
+            <div class="top-predictions-container">
+                <h3>Top-3 Recommendations</h3>
+                <ol id="topPredictionsList" class="top-predictions-list"></ol>
             </div>
 
             <div class="details-grid">
                 <div>
-                    <h3>Computed Features</h3>
+                    <h3>Additional Details</h3>
                     <ul id="featureSummary"></ul>
                 </div>
                 <div>
