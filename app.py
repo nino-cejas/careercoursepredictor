@@ -181,29 +181,251 @@ def rounded_model_summary(summary: dict[str, dict[str, float]]) -> dict[str, dic
     return {group: rounded_metrics(metrics) for group, metrics in summary.items()}
 
 
+def safe_divide(numerator: float, denominator: float) -> float:
+    return numerator / denominator if denominator else 0.0
+
+
+def compute_holland_similarity(left: str, right: str) -> float:
+    if not left or not right:
+        return 0.0
+
+    overlap = sum(1 for left_char, right_char in zip(left[:3], right[:3]) if left_char == right_char)
+    return overlap / 3.0
+
+
+def compute_scct_proximity(actual: float, expected: float) -> float:
+    return max(0.0, 1.0 - (abs(actual - expected) / 4.0))
+
+
+def compute_profile_similarity(
+    user_features: dict[str, object],
+    candidate_features: dict[str, object],
+) -> float:
+    # Weighted profile similarity that combines categorical matches and SCCT distance.
+    best_subject_match = 1.0 if user_features["best_subject"] == candidate_features["best_subject"] else 0.0
+    shs_strand_match = 1.0 if user_features["shs_strand"] == candidate_features["shs_strand"] else 0.0
+    holland_match = compute_holland_similarity(
+        str(user_features["holland_code"]),
+        str(candidate_features["holland_code"]),
+    )
+
+    se_proximity = compute_scct_proximity(
+        float(user_features["scct_se"]),
+        float(candidate_features["scct_se"]),
+    )
+    oe_proximity = compute_scct_proximity(
+        float(user_features["scct_oe"]),
+        float(candidate_features["scct_oe"]),
+    )
+    b_proximity = compute_scct_proximity(
+        float(user_features["scct_b"]),
+        float(candidate_features["scct_b"]),
+    )
+
+    return (
+        0.15 * best_subject_match
+        + 0.15 * shs_strand_match
+        + 0.25 * holland_match
+        + 0.15 * se_proximity
+        + 0.15 * oe_proximity
+        + 0.15 * b_proximity
+    )
+
+
+def resolve_local_neighbor_count(pool_size: int) -> int:
+    if pool_size <= 0:
+        return 0
+
+    # Keep neighborhoods local: 2% of pool, bounded for stability and speed.
+    scaled = int(pool_size * 0.02)
+    return min(pool_size, max(12, min(400, scaled)))
+
+
+def compute_local_model_summary(
+    user_features: dict[str, object],
+    evidence: dict[str, object],
+    fallback_summary: dict[str, dict[str, float]],
+) -> tuple[dict[str, dict[str, float]], dict[str, float | int | str]]:
+    feature_records = evidence.get("feature_records")
+    y_true_labels = np.asarray(evidence.get("y_true_labels", []), dtype=object)
+    top_1_pred_labels = np.asarray(evidence.get("top1_pred_labels", []), dtype=object)
+    top_1_hits = np.asarray(evidence.get("top1_hits", []), dtype=float)
+    top_3_hits = np.asarray(evidence.get("top3_hits", []), dtype=float)
+
+    if not isinstance(feature_records, list) or not feature_records:
+        return fallback_summary, {
+            "method": "global_fallback",
+            "sample_size": 0,
+            "pool_size": 0,
+            "average_similarity": 0.0,
+        }
+
+    pool_size = len(feature_records)
+    if (
+        top_1_hits.shape[0] != pool_size
+        or top_3_hits.shape[0] != pool_size
+        or y_true_labels.shape[0] != pool_size
+        or top_1_pred_labels.shape[0] != pool_size
+    ):
+        return fallback_summary, {
+            "method": "global_fallback",
+            "sample_size": 0,
+            "pool_size": pool_size,
+            "average_similarity": 0.0,
+        }
+
+    similarities = np.array(
+        [compute_profile_similarity(user_features, candidate) for candidate in feature_records],
+        dtype=float,
+    )
+    neighbor_count = resolve_local_neighbor_count(pool_size)
+    if neighbor_count == 0:
+        return fallback_summary, {
+            "method": "global_fallback",
+            "sample_size": 0,
+            "pool_size": pool_size,
+            "average_similarity": 0.0,
+        }
+
+    neighbor_indices = np.argpartition(similarities, -neighbor_count)[-neighbor_count:]
+    neighbor_similarities = similarities[neighbor_indices]
+    similarity_sum = float(neighbor_similarities.sum())
+
+    if similarity_sum > 0:
+        local_weights = neighbor_similarities
+        method = "local_weighted_knn_test_set"
+    else:
+        local_weights = np.ones(neighbor_count, dtype=float)
+        method = "local_unweighted_knn_test_set"
+
+    local_y_true = y_true_labels[neighbor_indices]
+    local_top_1_pred = top_1_pred_labels[neighbor_indices]
+    local_top_3_hits = top_3_hits[neighbor_indices] > 0.5
+
+    top_1_summary = {
+        "accuracy": float(accuracy_score(local_y_true, local_top_1_pred, sample_weight=local_weights)),
+        "recall": float(
+            recall_score(
+                local_y_true,
+                local_top_1_pred,
+                average="weighted",
+                zero_division=0,
+                sample_weight=local_weights,
+            )
+        ),
+        "f1_score": float(
+            f1_score(
+                local_y_true,
+                local_top_1_pred,
+                average="weighted",
+                zero_division=0,
+                sample_weight=local_weights,
+            )
+        ),
+        "precision": float(
+            precision_score(
+                local_y_true,
+                local_top_1_pred,
+                average="weighted",
+                zero_division=0,
+                sample_weight=local_weights,
+            )
+        ),
+    }
+
+    top_3_summary = compute_top_k_confusion_summary(
+        top_k_hits=local_top_3_hits,
+        k=3,
+        sample_weights=local_weights,
+    )
+
+    return {
+        "top1": top_1_summary,
+        "top3": top_3_summary,
+    }, {
+        "method": method,
+        "sample_size": int(neighbor_count),
+        "pool_size": int(pool_size),
+        "average_similarity": float(neighbor_similarities.mean()),
+    }
+
+
+def compute_top_k_hits(
+    y_true: pd.Series,
+    probabilities: np.ndarray,
+    class_labels: np.ndarray,
+    k: int,
+) -> np.ndarray:
+    if probabilities.ndim != 2 or probabilities.shape[0] == 0:
+        return np.array([], dtype=bool)
+
+    top_k = max(1, min(k, probabilities.shape[1]))
+    top_indices = np.argpartition(probabilities, -top_k, axis=1)[:, -top_k:]
+    top_labels = class_labels[top_indices]
+    y_true_values = y_true.to_numpy().reshape(-1, 1)
+    return (top_labels == y_true_values).any(axis=1)
+
+
 def compute_top_k_hit_rate(
     y_true: pd.Series,
     probabilities: np.ndarray,
     class_labels: np.ndarray,
     k: int,
 ) -> float:
-    if probabilities.ndim != 2 or probabilities.shape[0] == 0:
+    hits = compute_top_k_hits(y_true=y_true, probabilities=probabilities, class_labels=class_labels, k=k)
+    if hits.size == 0:
         return 0.0
-
-    top_k = max(1, min(k, probabilities.shape[1]))
-    top_indices = np.argpartition(probabilities, -top_k, axis=1)[:, -top_k:]
-    top_labels = class_labels[top_indices]
-    y_true_values = y_true.to_numpy().reshape(-1, 1)
-    hits = (top_labels == y_true_values).any(axis=1)
     return float(hits.mean())
 
 
-def hit_rate_to_summary(hit_rate: float) -> dict[str, float]:
+def compute_top_k_confusion_summary(
+    top_k_hits: np.ndarray,
+    k: int,
+    sample_weights: np.ndarray | None = None,
+) -> dict[str, float]:
+    hits = np.asarray(top_k_hits, dtype=float)
+    if hits.size == 0:
+        return {
+            "accuracy": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "precision": 0.0,
+        }
+
+    if sample_weights is None:
+        weights = np.ones(hits.shape[0], dtype=float)
+    else:
+        weights = np.asarray(sample_weights, dtype=float)
+        if weights.shape[0] != hits.shape[0]:
+            raise ValueError("sample_weights must match top_k_hits size.")
+
+    total_weight = float(weights.sum())
+    if total_weight <= 0:
+        return {
+            "accuracy": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "precision": 0.0,
+        }
+
+    top_k = max(1, int(k))
+
+    weighted_tp = float(np.dot(hits, weights))
+    weighted_predictions = total_weight * top_k
+    weighted_actuals = total_weight
+
+    weighted_fp = max(0.0, weighted_predictions - weighted_tp)
+    weighted_fn = max(0.0, weighted_actuals - weighted_tp)
+
+    precision = safe_divide(weighted_tp, weighted_tp + weighted_fp)
+    recall = safe_divide(weighted_tp, weighted_tp + weighted_fn)
+    f1 = safe_divide(2.0 * precision * recall, precision + recall)
+
     return {
-        "accuracy": hit_rate,
-        "recall": hit_rate,
-        "f1_score": hit_rate,
-        "precision": hit_rate,
+        "accuracy": safe_divide(weighted_tp, total_weight),
+        "recall": recall,
+        "f1_score": f1,
+        "precision": precision,
     }
 
 
@@ -219,7 +441,9 @@ def print_model_summary(summary: dict[str, dict[str, float]]) -> None:
     print(f"{'Precision':<10} {top_1['precision']:>10.4f} {top_3['precision']:>10.4f}")
 
 
-def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, dict[str, dict[str, float]]]:
+def load_and_train_model(
+    dataset_path: Path,
+) -> tuple[Pipeline, dict[str, dict[str, float]], dict[str, object]]:
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
@@ -273,6 +497,9 @@ def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, dict[str, dict[s
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
+    y_test_values = y_test.to_numpy()
+    top_1_hits = y_pred == y_test_values
+
     top_1_summary = {
         "accuracy": float(accuracy_score(y_test, y_pred)),
         "recall": float(recall_score(y_test, y_pred, average="weighted", zero_division=0)),
@@ -285,19 +512,26 @@ def load_and_train_model(dataset_path: Path) -> tuple[Pipeline, dict[str, dict[s
     test_probabilities = model.predict_proba(X_test)
     classifier = model.named_steps["classifier"]
     class_labels = classifier.classes_
-    top_3_hit_rate = compute_top_k_hit_rate(
+    top_3_hits = compute_top_k_hits(
         y_true=y_test,
         probabilities=test_probabilities,
         class_labels=class_labels,
         k=3,
     )
-    top_3_summary = hit_rate_to_summary(top_3_hit_rate)
+    top_3_summary = compute_top_k_confusion_summary(top_k_hits=top_3_hits, k=3)
 
-    return model, {"top1": top_1_summary, "top3": top_3_summary}
+    local_evidence = {
+        "feature_records": X_test.reset_index(drop=True).to_dict("records"),
+        "y_true_labels": y_test_values,
+        "top1_pred_labels": y_pred,
+        "top1_hits": top_1_hits,
+        "top3_hits": top_3_hits,
+    }
+
+    return model, {"top1": top_1_summary, "top3": top_3_summary}, local_evidence
 
 
-MODEL, MODEL_SUMMARY = load_and_train_model(DATASET_PATH)
-print_model_summary(MODEL_SUMMARY)
+MODEL, MODEL_SUMMARY, MODEL_EVIDENCE = load_and_train_model(DATASET_PATH)
 
 app = Flask(__name__, static_folder="public", static_url_path="")
 
@@ -342,17 +576,25 @@ def predict() -> object:
         scct_oe = clamp_score(scct_averages["scct_oe"])
         scct_b = clamp_score(scct_averages["scct_b"])
 
+        model_features = {
+            "best_subject": best_subject,
+            "shs_strand": shs_strand,
+            "holland_code": holland_code,
+            "scct_se": scct_se,
+            "scct_oe": scct_oe,
+            "scct_b": scct_b,
+        }
+
         model_input = pd.DataFrame(
             [
-                {
-                    "best_subject": best_subject,
-                    "shs_strand": shs_strand,
-                    "holland_code": holland_code,
-                    "scct_se": scct_se,
-                    "scct_oe": scct_oe,
-                    "scct_b": scct_b,
-                }
+                model_features
             ]
+        )
+
+        local_model_summary, local_summary_meta = compute_local_model_summary(
+            user_features=model_features,
+            evidence=MODEL_EVIDENCE,
+            fallback_summary=MODEL_SUMMARY,
         )
 
         probabilities = MODEL.predict_proba(model_input)[0]
@@ -390,17 +632,17 @@ def predict() -> object:
                 "best_career": predicted_career,
                 "best_course": predicted_course,
                 "top_predictions": top_predictions,
-                "model_accuracy": round(MODEL_SUMMARY["top1"]["accuracy"], 4),
-                "model_summary": rounded_model_summary(MODEL_SUMMARY),
-                "prediction_confidence": round(confidence, 4),
-                "model_input": {
-                    "best_subject": best_subject,
-                    "shs_strand": shs_strand,
-                    "holland_code": holland_code,
-                    "scct_se": scct_se,
-                    "scct_oe": scct_oe,
-                    "scct_b": scct_b,
+                "model_accuracy": round(local_model_summary["top1"]["accuracy"], 4),
+                "model_summary": rounded_model_summary(local_model_summary),
+                "model_summary_meta": {
+                    "method": str(local_summary_meta["method"]),
+                    "sample_size": int(local_summary_meta["sample_size"]),
+                    "pool_size": int(local_summary_meta["pool_size"]),
+                    "average_similarity": round(float(local_summary_meta["average_similarity"]), 4),
                 },
+                "global_model_summary": rounded_model_summary(MODEL_SUMMARY),
+                "prediction_confidence": round(confidence, 4),
+                "model_input": model_features,
             }
         )
 
@@ -411,6 +653,7 @@ def predict() -> object:
 
 
 if __name__ == "__main__":
+    print_model_summary(MODEL_SUMMARY)
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "5000"))
     debug = os.getenv("FLASK_DEBUG", "0") == "1"

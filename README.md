@@ -169,3 +169,38 @@ Expected result: both return `200`.
 1. The model trains on startup; ensure dataset is present before launching.
 2. This is a decision-support tool and should not be used as the sole basis for life-critical decisions.
 
+## Metric Meaning and Interpretation
+This section explains the model summary metrics shown in the UI.
+
+### Core Terms
+1. TP (True Positive): model predicts a label and it is correct.
+2. FP (False Positive): model predicts a label and it is not correct.
+3. FN (False Negative): true label exists but model misses it.
+4. TN (True Negative): model correctly rejects a non-true label.
+
+### Formulas
+1. Accuracy = (TP + TN) / (TP + TN + FP + FN)
+2. Precision = TP / (TP + FP)
+3. Recall = TP / (TP + FN)
+4. F1-Score = 2 * (Precision * Recall) / (Precision + Recall)
+
+### Practical Meaning
+1. Accuracy: overall correctness.
+2. Precision: when the model predicts something, how often it is right.
+3. Recall: how much of the true signal the model catches.
+4. F1-Score: balance between precision and recall.
+
+### How CareerLinkAI Uses These Metrics
+1. Top-1 metrics are computed from the first-ranked prediction only.
+2. Top-3 metrics use top-k confusion accounting.
+3. In Top-3 mode, if the true label appears in the top 3 list, that contributes one true positive.
+4. Additional recommended labels that are not the true label contribute false positives.
+5. If the true label is not in Top-3, that contributes a false negative.
+
+Because Top-3 offers more candidates, recall is usually higher than Top-1. Precision can be lower because more non-true labels may be included among recommendations.
+
+### Why Confidence and Summary Metrics Can Look Different
+1. Prediction confidence is for one user and one rank (usually rank 1 probability).
+2. Model summary metrics are aggregated over many samples (global test set or local neighborhood evidence).
+3. A single user can have low rank-1 confidence while the neighborhood-level Top-3 recall remains high.
+

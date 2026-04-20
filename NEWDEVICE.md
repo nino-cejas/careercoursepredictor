@@ -104,6 +104,19 @@ Expected:
 
 Stop with `Ctrl + C`.
 
+### Step 10A: One-click restart after code updates
+Use this single command to stop existing `app.py` Python processes and start a fresh local server on port `5000`.
+
+```powershell
+$running = Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'app.py' }; if ($running) { $running | ForEach-Object { Stop-Process -Id $_.ProcessId -Force } }; $env:HOST='127.0.0.1'; $env:PORT='5000'; & ".\.venv\Scripts\python.exe" app.py
+```
+
+If you prefer to run with activated venv, this also works:
+
+```powershell
+$running = Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'app.py' }; if ($running) { $running | ForEach-Object { Stop-Process -Id $_.ProcessId -Force } }; python app.py
+```
+
 ### Step 11: Run app in deployment mode (Waitress)
 ```powershell
 waitress-serve --listen=0.0.0.0:8000 app:app

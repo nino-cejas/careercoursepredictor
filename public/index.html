@@ -122,11 +122,29 @@
                         <p class="label">Prediction Confidence</p>
                         <p id="predictionConfidenceHighlight" class="highlight-value">-</p>
                     </div>
+                    <div class="highlight-item">
+                        <p class="label">Confidence Gap (#1 - #2)</p>
+                        <p id="confidenceGapHighlight" class="highlight-value">-</p>
+                    </div>
+                    <div class="highlight-item">
+                        <p class="label">Confidence Level</p>
+                        <p id="confidenceLevelHighlight" class="highlight-value confidence-level-unknown">-</p>
+                    </div>
                 </div>
             </div>
 
             <div class="model-summary-container">
                 <h3>Model Summary</h3>
+                <div class="local-hit-rate-strip">
+                    <div class="metric-item local-hit-rate-item">
+                        <p class="label">Top-1 Local Hit Rate</p>
+                        <p id="localTop1HitRate" class="value">-</p>
+                    </div>
+                    <div class="metric-item local-hit-rate-item">
+                        <p class="label">Top-3 Local Hit Rate</p>
+                        <p id="localTop3HitRate" class="value">-</p>
+                    </div>
+                </div>
                 <div class="model-summary-compare">
                     <div class="summary-column" id="top1SummaryColumn">
                         <div class="summary-head">
@@ -195,7 +213,13 @@
                 <ol id="topPredictionsList" class="top-predictions-list"></ol>
             </div>
 
-            <div class="details-grid">
+            <div class="details-toggle-row">
+                <button type="button" id="toggleDetailsBtn" class="explain-btn" aria-expanded="false">
+                    Show Additional Details &amp; RIASEC Scores
+                </button>
+            </div>
+
+            <div id="detailsContainer" class="details-grid hidden">
                 <div>
                     <h3>Additional Details</h3>
                     <ul id="featureSummary"></ul>

@@ -29,6 +29,12 @@ const top1ExplanationBox = document.getElementById("top1ExplanationBox");
 const top3ExplanationBox = document.getElementById("top3ExplanationBox");
 const top1ExplanationText = document.getElementById("top1ExplanationText");
 const top3ExplanationText = document.getElementById("top3ExplanationText");
+const localTop1HitRate = document.getElementById("localTop1HitRate");
+const localTop3HitRate = document.getElementById("localTop3HitRate");
+const confidenceGapHighlight = document.getElementById("confidenceGapHighlight");
+const confidenceLevelHighlight = document.getElementById("confidenceLevelHighlight");
+const toggleDetailsBtn = document.getElementById("toggleDetailsBtn");
+const detailsContainer = document.getElementById("detailsContainer");
 
 const RESULT_VIEW_TOP1 = "top1";
 const RESULT_VIEW_TOP3 = "top3";
@@ -43,6 +49,7 @@ let activeResultView = RESULT_VIEW_TOP3;
 let latestPredictionData = null;
 let isTop1ExplanationVisible = false;
 let isTop3ExplanationVisible = false;
+let isDetailsVisible = false;
 
 let riasecQuestions = [];
 let scctQuestions = { scct_se: [], scct_oe: [], scct_b: [] };
@@ -369,6 +376,10 @@ function setResultList(elementId, items) {
 }
 
 function toPercent(value) {
+    if (value === null || value === undefined) {
+        return "-";
+    }
+
     const numericValue = Number(value);
     if (!Number.isFinite(numericValue)) {
         return "-";
@@ -382,6 +393,50 @@ function toFixedText(value, decimals = 2) {
         return "-";
     }
     return numericValue.toFixed(decimals);
+}
+
+function computeConfidenceGap(predictions) {
+    if (!Array.isArray(predictions) || predictions.length < 2) {
+        return null;
+    }
+
+    const top1Confidence = Number(predictions[0].confidence);
+    const top2Confidence = Number(predictions[1].confidence);
+    if (!Number.isFinite(top1Confidence) || !Number.isFinite(top2Confidence)) {
+        return null;
+    }
+
+    return Math.max(0, top1Confidence - top2Confidence);
+}
+
+function classifyConfidenceLevel(top1Confidence, confidenceGap) {
+    if (!Number.isFinite(top1Confidence)) {
+        return {
+            label: "Unknown",
+            cssClass: "confidence-level-unknown",
+        };
+    }
+
+    const gap = Number.isFinite(confidenceGap) ? confidenceGap : 0;
+
+    if (top1Confidence >= 0.5 && gap >= 0.1) {
+        return {
+            label: "High",
+            cssClass: "confidence-level-high",
+        };
+    }
+
+    if (top1Confidence >= 0.3 && gap >= 0.05) {
+        return {
+            label: "Medium",
+            cssClass: "confidence-level-medium",
+        };
+    }
+
+    return {
+        label: "Low",
+        cssClass: "confidence-level-low",
+    };
 }
 
 function applyExplanationToggleState() {
@@ -407,6 +462,19 @@ function toggleModelSummaryExplanation(target) {
         isTop3ExplanationVisible = !isTop3ExplanationVisible;
     }
     applyExplanationToggleState();
+}
+
+function applyDetailsToggleState() {
+    detailsContainer.classList.toggle("hidden", !isDetailsVisible);
+    toggleDetailsBtn.textContent = isDetailsVisible ?
+        "Hide Additional Details & RIASEC Scores" :
+        "Show Additional Details & RIASEC Scores";
+    toggleDetailsBtn.setAttribute("aria-expanded", String(isDetailsVisible));
+}
+
+function toggleDetailsVisibility() {
+    isDetailsVisible = !isDetailsVisible;
+    applyDetailsToggleState();
 }
 
 function applyResultViewMode() {
@@ -460,8 +528,17 @@ function renderResult(data, shouldScroll = true) {
     latestPredictionData = data;
 
     const modelSummary = data.model_summary || {};
+    const modelSummaryMeta = data.model_summary_meta || {};
+    const globalModelSummary = data.global_model_summary || {};
     const top1Metrics = modelSummary.top1 || {};
     const top3Metrics = modelSummary.top3 || {};
+    const globalTop1Metrics = globalModelSummary.top1 || {};
+    const globalTop3Metrics = globalModelSummary.top3 || {};
+    const summaryMethod = String(modelSummaryMeta.method || "");
+    const isLocalSummary = summaryMethod.startsWith("local_");
+    const localSampleSize = Number(modelSummaryMeta.sample_size);
+    const localPoolSize = Number(modelSummaryMeta.pool_size);
+    const localAverageSimilarity = Number(modelSummaryMeta.average_similarity);
 
     document.getElementById("bestSubjectHighlight").textContent = data.best_subject;
     document.getElementById("shsStrandHighlight").textContent = data.model_input.shs_strand;
@@ -477,22 +554,49 @@ function renderResult(data, shouldScroll = true) {
 
     const top1Accuracy =
         top1Metrics.accuracy !== undefined ? top1Metrics.accuracy : data.model_accuracy;
+    const top3Accuracy = top3Metrics.accuracy;
+
+    const confidenceGap = computeConfidenceGap(data.top_predictions);
+    const confidenceLevel = classifyConfidenceLevel(data.prediction_confidence, confidenceGap);
+
+    localTop1HitRate.textContent = toPercent(top1Accuracy);
+    localTop3HitRate.textContent = toPercent(top3Accuracy);
+
+    confidenceGapHighlight.textContent = toPercent(confidenceGap);
+    confidenceLevelHighlight.textContent = confidenceLevel.label;
+    confidenceLevelHighlight.classList.remove(
+        "confidence-level-high",
+        "confidence-level-medium",
+        "confidence-level-low",
+        "confidence-level-unknown"
+    );
+    confidenceLevelHighlight.classList.add(confidenceLevel.cssClass);
+
     document.getElementById("top1Accuracy").textContent = toPercent(top1Accuracy);
     document.getElementById("top1Recall").textContent = toPercent(top1Metrics.recall);
     document.getElementById("top1F1Score").textContent = toPercent(top1Metrics.f1_score);
     document.getElementById("top1Precision").textContent = toPercent(top1Metrics.precision);
 
-    document.getElementById("top3Accuracy").textContent = toPercent(top3Metrics.accuracy);
+    document.getElementById("top3Accuracy").textContent = toPercent(top3Accuracy);
     document.getElementById("top3Recall").textContent = toPercent(top3Metrics.recall);
     document.getElementById("top3F1Score").textContent = toPercent(top3Metrics.f1_score);
     document.getElementById("top3Precision").textContent = toPercent(top3Metrics.precision);
 
-    top1ExplanationText.textContent = `Top-1 summary uses exact first-choice matching on the test set. Accuracy ${toPercent(
-        top1Accuracy
-    )} means only the #1 predicted career-course pair is counted as correct. Weighted recall, F1-score, and precision are influenced by class frequency, so common labels affect these values more.`;
-    top3ExplanationText.textContent = `Top-3 summary uses ranked hit logic. Accuracy ${toPercent(
-        top3Metrics.accuracy
-    )} counts a prediction as correct when the true label appears anywhere in the top 3 recommendations, which is why this summary is typically higher than Top-1.`;
+    if (isLocalSummary) {
+        top1ExplanationText.textContent = `Top-1 summary is dynamic for this user profile. It uses the most similar test-set neighbors (${localSampleSize}/${localPoolSize}) and reports how often a matching profile's true label was captured at rank #1. Current local Top-1 hit rate is ${toPercent(
+            top1Accuracy
+        )}, with average profile similarity ${toPercent(localAverageSimilarity)}.`;
+        top3ExplanationText.textContent = `Top-3 summary is also dynamic for this user profile. Using the same neighborhood (${localSampleSize}/${localPoolSize}), metrics are computed from top-k confusion logic: a hit contributes one true positive, while each non-true recommended label contributes false positives. Local Top-3 hit rate is ${toPercent(
+            top3Metrics.accuracy
+        )}, with precision/recall/F1 shown from that confusion view.`;
+    } else {
+        top1ExplanationText.textContent = `Top-1 summary uses exact first-choice matching on the test set. Accuracy ${toPercent(
+            top1Accuracy
+        )} means only the #1 predicted career-course pair is counted as correct. Weighted recall, F1-score, and precision are influenced by class frequency, so common labels affect these values more.`;
+        top3ExplanationText.textContent = `Top-3 summary uses ranked hit logic with top-k confusion accounting. Accuracy ${toPercent(
+            top3Metrics.accuracy
+        )} counts a hit when the true label appears in the top 3, while precision/recall/F1 are derived from top-k true/false positives and false negatives.`;
+    }
     applyExplanationToggleState();
 
     renderTopPredictions(data.top_predictions);
@@ -504,11 +608,28 @@ function renderResult(data, shouldScroll = true) {
         `Model Input SCCT-SE (clamped): ${data.model_input.scct_se}`,
         `Model Input SCCT-OE (clamped): ${data.model_input.scct_oe}`,
         `Model Input SCCT-B (clamped): ${data.model_input.scct_b}`,
-        `Top-1 Model Accuracy: ${toPercent(top1Accuracy)}`,
+        `Confidence Gap (#1 - #2): ${toPercent(confidenceGap)}`,
+        `Confidence Level: ${confidenceLevel.label} (High >= 50% and gap >= 10%; Medium >= 30% and gap >= 5%)`,
+        `${isLocalSummary ? "Top-1 Local Hit Rate" : "Top-1 Model Accuracy"}: ${toPercent(top1Accuracy)}`,
     ];
 
+    if (isLocalSummary) {
+        featureSummaryItems.push(`Neighborhood Evidence Size: ${localSampleSize}/${localPoolSize}`);
+        featureSummaryItems.push(`Neighborhood Avg Similarity: ${toPercent(localAverageSimilarity)}`);
+        featureSummaryItems.push(
+            `Global Top-1 Baseline: ${toPercent(globalTop1Metrics.accuracy)}`
+        );
+    }
+
     if (activeResultView === RESULT_VIEW_TOP3) {
-        featureSummaryItems.push(`Top-3 Model Accuracy: ${toPercent(top3Metrics.accuracy)}`);
+        featureSummaryItems.push(
+            `${isLocalSummary ? "Top-3 Local Hit Rate" : "Top-3 Model Accuracy"}: ${toPercent(
+                top3Accuracy
+            )}`
+        );
+        if (isLocalSummary) {
+            featureSummaryItems.push(`Global Top-3 Baseline: ${toPercent(globalTop3Metrics.accuracy)}`);
+        }
     }
 
     setResultList("featureSummary", featureSummaryItems);
@@ -540,6 +661,10 @@ toggleTop1ExplanationBtn.addEventListener("click", () => {
 
 toggleTop3ExplanationBtn.addEventListener("click", () => {
     toggleModelSummaryExplanation(RESULT_VIEW_TOP3);
+});
+
+toggleDetailsBtn.addEventListener("click", () => {
+    toggleDetailsVisibility();
 });
 
 nextBtn.addEventListener("click", () => {
@@ -599,6 +724,7 @@ predictForm.addEventListener("submit", async(event) => {
     createGradeInputs();
     applyResultViewMode();
     applyExplanationToggleState();
+    applyDetailsToggleState();
     renderWizardStep();
     try {
         await loadQuestions();
