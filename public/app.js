@@ -35,9 +35,24 @@ const confidenceGapHighlight = document.getElementById("confidenceGapHighlight")
 const confidenceLevelHighlight = document.getElementById("confidenceLevelHighlight");
 const toggleDetailsBtn = document.getElementById("toggleDetailsBtn");
 const detailsContainer = document.getElementById("detailsContainer");
+const openFullFlowBtn = document.getElementById("openFullFlowBtn");
+const openQuickFlowBtn = document.getElementById("openQuickFlowBtn");
+const quickPredictForm = document.getElementById("quickPredictForm");
+const quickSubmitBtn = document.getElementById("quickSubmitBtn");
+const quickStatusMessage = document.getElementById("quickStatusMessage");
+const quickMathAvgInput = document.getElementById("quickMathAvg");
+const quickEnglishAvgInput = document.getElementById("quickEnglishAvg");
+const quickScienceAvgInput = document.getElementById("quickScienceAvg");
+const quickShsStrandInput = document.getElementById("quickShsStrand");
+const quickHollandCodeInput = document.getElementById("quickHollandCode");
+const quickScctSeInput = document.getElementById("quickScctSe");
+const quickScctOeInput = document.getElementById("quickScctOe");
+const quickScctBInput = document.getElementById("quickScctB");
 
 const RESULT_VIEW_TOP1 = "top1";
 const RESULT_VIEW_TOP3 = "top3";
+const INPUT_MODE_FULL = "full";
+const INPUT_MODE_QUICK = "quick";
 
 const wizardState = {
     step: 0,
@@ -46,6 +61,7 @@ const wizardState = {
 };
 
 let activeResultView = RESULT_VIEW_TOP3;
+let activeInputMode = INPUT_MODE_FULL;
 let latestPredictionData = null;
 let isTop1ExplanationVisible = false;
 let isTop3ExplanationVisible = false;
@@ -55,6 +71,32 @@ let riasecQuestions = [];
 let scctQuestions = { scct_se: [], scct_oe: [], scct_b: [] };
 let riasecAnswers = {};
 let scctAnswers = { scct_se: [3, 3, 3, 3], scct_oe: [3, 3, 3, 3], scct_b: [3, 3, 3, 3] };
+
+function setQuickStatus(message, isError = false) {
+    quickStatusMessage.textContent = message;
+    quickStatusMessage.classList.toggle("error", isError);
+}
+
+function applyInputMode() {
+    const showFullMode = activeInputMode === INPUT_MODE_FULL;
+
+    predictForm.classList.toggle("hidden", !showFullMode);
+    quickPredictForm.classList.toggle("hidden", showFullMode);
+
+    openFullFlowBtn.classList.toggle("active", showFullMode);
+    openQuickFlowBtn.classList.toggle("active", !showFullMode);
+    openFullFlowBtn.setAttribute("aria-pressed", String(showFullMode));
+    openQuickFlowBtn.setAttribute("aria-pressed", String(!showFullMode));
+}
+
+function setInputMode(mode) {
+    if (mode !== INPUT_MODE_FULL && mode !== INPUT_MODE_QUICK) {
+        return;
+    }
+
+    activeInputMode = mode;
+    applyInputMode();
+}
 
 function createGradeInputs() {
     document.querySelectorAll(".inputs-inline").forEach((container) => {
@@ -365,6 +407,112 @@ function readScctAnswers() {
     };
 }
 
+function readQuickNumericValue(inputElement, label, minimum, maximum) {
+    const value = Number(inputElement.value);
+    if (!Number.isFinite(value) || value < minimum || value > maximum) {
+        throw new Error(`${label} must be between ${minimum} and ${maximum}.`);
+    }
+    return value;
+}
+
+function normalizeQuickHollandCode(rawCode) {
+    const code = String(rawCode || "").trim().toUpperCase();
+    if (!/^[RIASEC]{3}$/.test(code)) {
+        throw new Error("Holland code must be exactly 3 letters from R, I, A, S, E, C.");
+    }
+
+    if (new Set(code).size !== 3) {
+        throw new Error("Holland code must contain 3 unique letters.");
+    }
+
+    return code;
+}
+
+function riasecCodeByQuestionId(questionId) {
+    if (questionId <= 8) {
+        return "R";
+    }
+    if (questionId <= 16) {
+        return "I";
+    }
+    if (questionId <= 24) {
+        return "A";
+    }
+    if (questionId <= 32) {
+        return "S";
+    }
+    if (questionId <= 40) {
+        return "E";
+    }
+    return "C";
+}
+
+function buildQuickRiasecAnswers(hollandCode) {
+    const answers = {};
+    const rankedScores = {
+        [hollandCode[0]]: 5,
+        [hollandCode[1]]: 4,
+        [hollandCode[2]]: 3,
+    };
+
+    for (let questionId = 1; questionId <= 48; questionId += 1) {
+        const code = riasecCodeByQuestionId(questionId);
+        answers[String(questionId)] = rankedScores[code] || 1;
+    }
+
+    return answers;
+}
+
+function buildQuickPayload() {
+    const mathAvg = readQuickNumericValue(quickMathAvgInput, "Math average", 70, 100);
+    const englishAvg = readQuickNumericValue(quickEnglishAvgInput, "English average", 70, 100);
+    const scienceAvg = readQuickNumericValue(quickScienceAvgInput, "Science average", 70, 100);
+
+    const shsStrand = String(quickShsStrandInput.value || "").trim().toUpperCase();
+    if (!["STEM", "ABM", "HUMSS", "ICT", "HE"].includes(shsStrand)) {
+        throw new Error("Please select a valid SHS strand.");
+    }
+
+    const hollandCode = normalizeQuickHollandCode(quickHollandCodeInput.value);
+    quickHollandCodeInput.value = hollandCode;
+
+    const scctSe = readQuickNumericValue(quickScctSeInput, "SCCT SE", 1, 5);
+    const scctOe = readQuickNumericValue(quickScctOeInput, "SCCT OE", 1, 5);
+    const scctB = readQuickNumericValue(quickScctBInput, "SCCT B", 1, 5);
+
+    return {
+        grades: {
+            Math: [mathAvg, mathAvg, mathAvg, mathAvg],
+            English: [englishAvg, englishAvg, englishAvg, englishAvg],
+            Science: [scienceAvg, scienceAvg, scienceAvg, scienceAvg],
+        },
+        shs_strand: shsStrand,
+        riasec_answers: buildQuickRiasecAnswers(hollandCode),
+        scct_answers: {
+            scct_se: [scctSe, scctSe, scctSe, scctSe],
+            scct_oe: [scctOe, scctOe, scctOe, scctOe],
+            scct_b: [scctB, scctB, scctB, scctB],
+        },
+    };
+}
+
+async function requestPrediction(payload) {
+    const response = await fetch("/api/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || "Prediction failed.");
+    }
+
+    return data;
+}
+
 function setResultList(elementId, items) {
     const list = document.getElementById(elementId);
     list.innerHTML = "";
@@ -529,11 +677,8 @@ function renderResult(data, shouldScroll = true) {
 
     const modelSummary = data.model_summary || {};
     const modelSummaryMeta = data.model_summary_meta || {};
-    const globalModelSummary = data.global_model_summary || {};
     const top1Metrics = modelSummary.top1 || {};
     const top3Metrics = modelSummary.top3 || {};
-    const globalTop1Metrics = globalModelSummary.top1 || {};
-    const globalTop3Metrics = globalModelSummary.top3 || {};
     const summaryMethod = String(modelSummaryMeta.method || "");
     const isLocalSummary = summaryMethod.startsWith("local_");
     const localSampleSize = Number(modelSummaryMeta.sample_size);
@@ -613,23 +758,12 @@ function renderResult(data, shouldScroll = true) {
         `${isLocalSummary ? "Top-1 Local Hit Rate" : "Top-1 Model Accuracy"}: ${toPercent(top1Accuracy)}`,
     ];
 
-    if (isLocalSummary) {
-        featureSummaryItems.push(`Neighborhood Evidence Size: ${localSampleSize}/${localPoolSize}`);
-        featureSummaryItems.push(`Neighborhood Avg Similarity: ${toPercent(localAverageSimilarity)}`);
-        featureSummaryItems.push(
-            `Global Top-1 Baseline: ${toPercent(globalTop1Metrics.accuracy)}`
-        );
-    }
-
     if (activeResultView === RESULT_VIEW_TOP3) {
         featureSummaryItems.push(
             `${isLocalSummary ? "Top-3 Local Hit Rate" : "Top-3 Model Accuracy"}: ${toPercent(
                 top3Accuracy
             )}`
         );
-        if (isLocalSummary) {
-            featureSummaryItems.push(`Global Top-3 Baseline: ${toPercent(globalTop3Metrics.accuracy)}`);
-        }
     }
 
     setResultList("featureSummary", featureSummaryItems);
@@ -667,6 +801,14 @@ toggleDetailsBtn.addEventListener("click", () => {
     toggleDetailsVisibility();
 });
 
+openFullFlowBtn.addEventListener("click", () => {
+    setInputMode(INPUT_MODE_FULL);
+});
+
+openQuickFlowBtn.addEventListener("click", () => {
+    setInputMode(INPUT_MODE_QUICK);
+});
+
 nextBtn.addEventListener("click", () => {
     try {
         goNextScreen();
@@ -697,18 +839,7 @@ predictForm.addEventListener("submit", async(event) => {
             scct_answers: readScctAnswers(),
         };
 
-        const response = await fetch("/api/predict", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error || "Prediction failed.");
-        }
+        const data = await requestPrediction(payload);
 
         renderResult(data);
         statusMessage.textContent = "Prediction complete.";
@@ -720,8 +851,28 @@ predictForm.addEventListener("submit", async(event) => {
     }
 });
 
+quickPredictForm.addEventListener("submit", async(event) => {
+    event.preventDefault();
+
+    quickSubmitBtn.disabled = true;
+    setQuickStatus("Computing prediction...");
+
+    try {
+        const payload = buildQuickPayload();
+        const data = await requestPrediction(payload);
+        renderResult(data);
+        setQuickStatus("Prediction complete.");
+    } catch (error) {
+        setQuickStatus(error.message, true);
+    } finally {
+        quickSubmitBtn.disabled = false;
+    }
+});
+
 (async function init() {
     createGradeInputs();
+    setQuickStatus("Ready.");
+    applyInputMode();
     applyResultViewMode();
     applyExplanationToggleState();
     applyDetailsToggleState();

@@ -16,6 +16,15 @@
             <p class="subtitle">Logistic Regression model powered by grades, RIASEC, and SCCT.</p>
         </header>
 
+        <section class="card mode-switch-card">
+            <h2>Choose Assessment Type</h2>
+            <p class="section-note">Use Full Assessment for the complete questionnaire, or Quick Type to enter profile values directly.</p>
+            <div class="mode-switch-actions" role="group" aria-label="Assessment type mode">
+                <button type="button" id="openFullFlowBtn" class="mode-btn active" aria-pressed="true">Full Assessment</button>
+                <button type="button" id="openQuickFlowBtn" class="mode-btn" aria-pressed="false">Quick Type</button>
+            </div>
+        </section>
+
         <form id="predictForm" class="card form-grid" novalidate>
             <div class="wizard-header">
                 <div class="wizard-track" aria-hidden="true">
@@ -73,6 +82,58 @@
                 <button type="button" id="nextBtn">Next</button>
                 <button type="submit" id="submitBtn" class="hidden">Predict Career & Course</button>
                 <p id="statusMessage" class="status" aria-live="polite"></p>
+            </div>
+        </form>
+
+        <form id="quickPredictForm" class="card quick-form hidden" novalidate>
+            <h2>Quick Type Input</h2>
+            <p class="section-note">Provide average grades and profile indicators to generate a prediction in one step.</p>
+
+            <div class="quick-grid">
+                <label class="field">
+                    <span>Math Average (70-100)</span>
+                    <input type="number" id="quickMathAvg" min="70" max="100" step="0.01" value="85" required>
+                </label>
+                <label class="field">
+                    <span>English Average (70-100)</span>
+                    <input type="number" id="quickEnglishAvg" min="70" max="100" step="0.01" value="85" required>
+                </label>
+                <label class="field">
+                    <span>Science Average (70-100)</span>
+                    <input type="number" id="quickScienceAvg" min="70" max="100" step="0.01" value="85" required>
+                </label>
+                <label class="field">
+                    <span>SHS Strand</span>
+                    <select id="quickShsStrand" required>
+                        <option value="">Select strand</option>
+                        <option value="STEM">STEM</option>
+                        <option value="ABM">ABM</option>
+                        <option value="HUMSS">HUMSS</option>
+                        <option value="ICT">ICT</option>
+                        <option value="HE">HE</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Holland Code (3 unique letters, e.g., RIC)</span>
+                    <input type="text" id="quickHollandCode" maxlength="3" value="RIC" required>
+                </label>
+                <label class="field">
+                    <span>SCCT SE (1-5)</span>
+                    <input type="number" id="quickScctSe" min="1" max="5" step="1" value="3" required>
+                </label>
+                <label class="field">
+                    <span>SCCT OE (1-5)</span>
+                    <input type="number" id="quickScctOe" min="1" max="5" step="1" value="3" required>
+                </label>
+                <label class="field">
+                    <span>SCCT B (1-5)</span>
+                    <input type="number" id="quickScctB" min="1" max="5" step="1" value="3" required>
+                </label>
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="quickSubmitBtn">Generate Quick Prediction</button>
+                <p id="quickStatusMessage" class="status" aria-live="polite"></p>
             </div>
         </form>
 
