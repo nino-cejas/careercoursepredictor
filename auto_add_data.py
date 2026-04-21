@@ -108,6 +108,116 @@ CAREER_OPTIONS = [
 	{"career": "Advertising Director", "course": "BFA Advertising Arts"},
 ]
 
+# User-defined plotting targets for each career option.
+CAREER_PLOTTING_OVERRIDES = {
+	"Civil Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Marketing Manager": {"best_subject": "ENGLISH", "shs_strand": "ABM", "holland_code": "EAS"},
+	"Software Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Registered Nurse": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "SIR"},
+	"CPA Accountant": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "CEI"},
+	"Psychometrician": {"best_subject": "SCIENCE", "shs_strand": "HUMSS", "holland_code": "ISA"},
+	"Data Scientist": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "ICR"},
+	"Architect": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "AIR"},
+	"Licensed Pharmacist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "ICS"},
+	"Graphic Designer": {"best_subject": "SCIENCE", "shs_strand": "ICT", "holland_code": "ARS"},
+	"Mechanical Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Lawyer / Attorney": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ESI"},
+	"IT Specialist": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "RIC"},
+	"Medical Technologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Financial Analyst": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "IEC"},
+	"News Journalist": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "AES"},
+	"Electrical Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Executive Chef": {"best_subject": "SCIENCE", "shs_strand": "HE", "holland_code": "RAE"},
+	"Veterinarian": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRS"},
+	"HR Manager": {"best_subject": "ENGLISH", "shs_strand": "ABM", "holland_code": "ESC"},
+	"Aircraft Mechanic": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RCI"},
+	"Social Worker": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SIE"},
+	"Cybersecurity Analyst": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "IRC"},
+	"Microbiologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRS"},
+	"Hotel Manager": {"best_subject": "ENGLISH", "shs_strand": "HE", "holland_code": "ESC"},
+	"Physical Therapist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "SIR"},
+	"Geodetic Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Librarian": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "CSE"},
+	"Environmental Planner": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IEA"},
+	"Economist": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "IAS"},
+	"Chemical Engineer": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Criminologist": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "RES"},
+	"Interior Designer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "ARE"},
+	"Radiologic Technologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Customs Broker": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "CEI"},
+	"PR Specialist": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "EAS"},
+	"Computer Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Nutritionist-Dietitian": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "ISE"},
+	"Flight Attendant": {"best_subject": "ENGLISH", "shs_strand": "HE", "holland_code": "ESR"},
+	"Real Estate Broker": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ECS"},
+	"Industrial Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "IEC"},
+	"Agriculturist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIS"},
+	"Marine Biologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRS"},
+	"Systems Administrator": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "RIC"},
+	"Occupational Therapist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "SIR"},
+	"Game Developer": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "AIR"},
+	"Marine Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Merchant Marine Officer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "REC"},
+	"Geologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRS"},
+	"Actuary": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "ICR"},
+	"Software Tester": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "ICR"},
+	"Preschool Teacher": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SAE"},
+	"SPED Teacher": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SIR"},
+	"High School Teacher": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SIR"},
+	"Mining Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Petroleum Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Forensic Investigator": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Bank Manager": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ECS"},
+	"Operations Manager": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ECS"},
+	"UI/UX Designer": {"best_subject": "SCIENCE", "shs_strand": "ICT", "holland_code": "AIR"},
+	"App Developer": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "IRC"},
+	"Radio/TV Broadcaster": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "AES"},
+	"Fashion Designer": {"best_subject": "SCIENCE", "shs_strand": "HE", "holland_code": "ARS"},
+	"Optometrist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "ISR"},
+	"Dentist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Anthropologist": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ISA"},
+	"Sociologist": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ISA"},
+	"Historian": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ISA"},
+	"Museum Curator": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "AEC"},
+	"Diplomat": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ESI"},
+	"English Instructor": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SAE"},
+	"Philosophy Professor": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "ISA"},
+	"Technical Writer": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "AIC"},
+	"Biochemist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Meteorologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Astrophysicist": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Materials Engineer": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Sanitary Engineer": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Electronics Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Entrepreneur": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ESR"},
+	"Digital Marketer": {"best_subject": "ENGLISH", "shs_strand": "ABM", "holland_code": "EAS"},
+	"E-Commerce Manager": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ECS"},
+	"Office Administrator": {"best_subject": "ENGLISH", "shs_strand": "ABM", "holland_code": "CES"},
+	"Event Coordinator": {"best_subject": "ENGLISH", "shs_strand": "HE", "holland_code": "ECS"},
+	"Tour Guide": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SER"},
+	"Pastry Chef": {"best_subject": "SCIENCE", "shs_strand": "HE", "holland_code": "RAC"},
+	"Agribusiness Manager": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "ERS"},
+	"Forester": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIS"},
+	"Fisheries Technologist": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "RIS"},
+	"Environmental Officer": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "ISR"},
+	"Database Manager": {"best_subject": "MATH", "shs_strand": "ICT", "holland_code": "CIR"},
+	"Cloud Architect": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "IRC"},
+	"AI Researcher": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "IRC"},
+	"Quality Analyst": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "ICR"},
+	"Telecom Engineer": {"best_subject": "MATH", "shs_strand": "STEM", "holland_code": "RIC"},
+	"Paralegal": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "CEI"},
+	"Public Servant": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "SEC"},
+	"Logistics Officer": {"best_subject": "MATH", "shs_strand": "ABM", "holland_code": "CRE"},
+	"Sports Coach": {"best_subject": "SCIENCE", "shs_strand": "STEM", "holland_code": "SRE"},
+	"Advertising Director": {"best_subject": "ENGLISH", "shs_strand": "HUMSS", "holland_code": "AES"},
+}
+
+SUBJECT_NORMALIZATION = {
+	"MATH": "Math",
+	"ENGLISH": "English",
+	"SCIENCE": "Science",
+}
+
 HOLLAND_POSITION_WEIGHTS = (3, 2, 1)
 RIASEC_LETTERS = "RIASEC"
 ALL_HOLLAND_CODES = ["".join(code) for code in permutations(RIASEC_LETTERS, 3)]
@@ -227,6 +337,68 @@ def stable_seed(text: str) -> int:
 
 def clamp(value: int, minimum: int, maximum: int) -> int:
 	return max(minimum, min(value, maximum))
+
+
+def normalize_best_subject(subject: str) -> str:
+	normalized = subject.strip().upper()
+	if normalized not in SUBJECT_NORMALIZATION:
+		raise ValueError(f"Unsupported best_subject override: {subject}")
+	return SUBJECT_NORMALIZATION[normalized]
+
+
+def build_override_subject_profile(best_subject: str) -> dict[str, float]:
+	return {
+		subject: (1.0 if subject == best_subject else 0.25)
+		for subject in ("Math", "English", "Science")
+	}
+
+
+def build_override_strand_affinity(shs_strand: str) -> dict[str, float]:
+	return {
+		strand: (1.0 if strand == shs_strand else 0.2)
+		for strand in STRAND_KEYWORDS
+	}
+
+
+def build_override_riasec_profile(holland_code: str) -> dict[str, int]:
+	profile = {letter: 1 for letter in RIASEC_LETTERS}
+	for boost, letter in zip((5, 4, 3), holland_code):
+		profile[letter] = min(6, profile[letter] + boost)
+	return profile
+
+
+def build_override_preferred_holland_codes(primary_holland_code: str, seed: int) -> set[str]:
+	index = seed % len(ALL_HOLLAND_CODES)
+	alt_code_a = ALL_HOLLAND_CODES[index]
+	alt_code_b = ALL_HOLLAND_CODES[(index + 17) % len(ALL_HOLLAND_CODES)]
+	alt_code_c = ALL_HOLLAND_CODES[(index + 53) % len(ALL_HOLLAND_CODES)]
+	return {primary_holland_code, alt_code_a, alt_code_b, alt_code_c}
+
+
+def validate_plotting_overrides() -> None:
+	careers = {option["career"] for option in CAREER_OPTIONS}
+	override_careers = set(CAREER_PLOTTING_OVERRIDES)
+
+	missing = sorted(careers - override_careers)
+	extra = sorted(override_careers - careers)
+	if missing or extra:
+		messages = []
+		if missing:
+			messages.append(f"Missing career overrides: {', '.join(missing)}")
+		if extra:
+			messages.append(f"Unknown career overrides: {', '.join(extra)}")
+		raise ValueError(" | ".join(messages))
+
+	for career, override in CAREER_PLOTTING_OVERRIDES.items():
+		normalize_best_subject(override["best_subject"])
+
+		shs_strand = override["shs_strand"]
+		if shs_strand not in STRAND_KEYWORDS:
+			raise ValueError(f"Unsupported shs_strand override for {career}: {shs_strand}")
+
+		holland_code = override["holland_code"]
+		if holland_code not in HOLLAND_CODE_INDEX:
+			raise ValueError(f"Unsupported holland_code override for {career}: {holland_code}")
 
 
 def contains_keyword(text: str, keyword: str) -> bool:
@@ -429,19 +601,37 @@ def infer_scct_ideal(career: str, course: str, strand: str) -> dict[str, int]:
 
 
 def build_all_career_options() -> list[dict]:
+	validate_plotting_overrides()
 	options = []
 	for option in CAREER_OPTIONS:
 		career = option["career"]
 		course = option["course"]
 		text = f"{career} {course}".lower()
 		seed = stable_seed(text)
-		strand_affinity = infer_strand_affinity(career, course)
-		strand = infer_primary_strand(strand_affinity)
-		riasec_profile = infer_riasec_profile(career, course, strand)
-		primary_holland_code, preferred_holland_codes = infer_preferred_holland_codes(
-			riasec_profile,
-			seed,
-		)
+
+		override = CAREER_PLOTTING_OVERRIDES.get(career)
+		if override:
+			strand = override["shs_strand"]
+			best_subject = normalize_best_subject(override["best_subject"])
+			primary_holland_code = override["holland_code"]
+			strand_affinity = build_override_strand_affinity(strand)
+			subject_profile = build_override_subject_profile(best_subject)
+			riasec_profile = build_override_riasec_profile(primary_holland_code)
+			preferred_holland_codes = build_override_preferred_holland_codes(
+				primary_holland_code,
+				seed,
+			)
+		else:
+			strand_affinity = infer_strand_affinity(career, course)
+			strand = infer_primary_strand(strand_affinity)
+			subject_profile = infer_subject_profile(career, course, strand)
+			best_subject = max(subject_profile, key=subject_profile.get)
+			riasec_profile = infer_riasec_profile(career, course, strand)
+			primary_holland_code, preferred_holland_codes = infer_preferred_holland_codes(
+				riasec_profile,
+				seed,
+			)
+
 		options.append(
 			{
 				"career": career,
@@ -449,7 +639,8 @@ def build_all_career_options() -> list[dict]:
 				"seed": seed,
 				"strand": strand,
 				"strand_affinity": strand_affinity,
-				"subject_profile": infer_subject_profile(career, course, strand),
+				"best_subject_hint": best_subject,
+				"subject_profile": subject_profile,
 				"riasec_profile": riasec_profile,
 				"primary_holland_code": primary_holland_code,
 				"preferred_holland_codes": preferred_holland_codes,
@@ -597,6 +788,47 @@ def map_career_and_course(
 	return best_option["career"], best_option["course"]
 
 
+def apply_plotting_anchor_rows(df: pd.DataFrame) -> pd.DataFrame:
+	"""Guarantee at least one exact row per career for requested plotting fields."""
+	reserved_indices: set[int] = set()
+
+	for option in ALL_CAREER_OPTIONS:
+		best_subject = option["best_subject_hint"]
+		shs_strand = option["strand"]
+		holland_code = option["primary_holland_code"]
+		ideal = option["scct_ideal"]
+
+		candidates = df[
+			(df["best_subject"] == best_subject)
+			& (df["shs_strand"] == shs_strand)
+			& (df["holland_code"] == holland_code)
+		].copy()
+		if candidates.empty:
+			continue
+
+		candidates["distance"] = (
+			(candidates["scct_se"] - ideal["se"]).abs()
+			+ (candidates["scct_oe"] - ideal["oe"]).abs()
+			+ (candidates["scct_b"] - ideal["b"]).abs()
+		)
+		candidates = candidates.sort_values(["distance", "suggestion_id"])
+
+		chosen_index = None
+		for index in candidates.index.tolist():
+			if index not in reserved_indices:
+				chosen_index = int(index)
+				break
+
+		if chosen_index is None:
+			chosen_index = int(candidates.index[0])
+
+		reserved_indices.add(chosen_index)
+		df.at[chosen_index, "best_career"] = option["career"]
+		df.at[chosen_index, "best_course"] = option["course"]
+
+	return df
+
+
 def generate_dataset(
 	output_file: str = "career_suggestion.csv",
 ) -> pd.DataFrame:
@@ -654,6 +886,8 @@ def generate_dataset(
 			"best_course",
 		],
 	)
+
+	df = apply_plotting_anchor_rows(df)
 
 	df.to_csv(output_file, index=False)
 	return df
